@@ -5,11 +5,10 @@ If you nest childblock data beneath a parent, click into the parent block and th
 Note that you need to have set up whichever service you're using in advance - stepwise instructions are below.
 
 
-- ## Example Items:
-    - lunch with John
-        - Date: tomorrow
-        - Time: 1230 pm
-        - Location: Rialto Towers
+- lunch with John
+    - Date: tomorrow
+    - Time: 1230 pm
+    - Location: Rialto Towers
 
 This clip shows how to use the data structure above to make a calendar entry: https://www.loom.com/share/ead9d2d129994cad9c00261925e7ac6d
 
