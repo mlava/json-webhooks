@@ -26,20 +26,24 @@ export default {
         });
 
         async function jsonWH() {
-            if (!extensionAPI.settings.get("jsonWH-webhook")) {
-                sendConfigAlert();
-            } else if (!extensionAPI.settings.get("jsonWH-delimiter")) {
-                sendConfigAlert();
-            } else {
-                const WebhookURL = extensionAPI.settings.get("jsonWH-webhook");
-                const WebhookDelimiter = extensionAPI.settings.get("jsonWH-delimiter");
-                var dataString;
-                const startBlock = await window.roamAlphaAPI.ui.getFocusedBlock()?.["block-uid"];
+            var WebhookDelimiter;
+            breakme: {
+                if (!extensionAPI.settings.get("jsonWH-webhook")) {
+                    sendConfigAlert();
+                    break breakme;
+                } else {
+                    const WebhookURL = extensionAPI.settings.get("jsonWH-webhook");
+                    if (!extensionAPI.settings.get("jsonWH-delimiter")) {
+                        WebhookDelimiter = ":";
+                        console.log("WebhookDelimiter set to default");
+                    } else {
+                        WebhookDelimiter = extensionAPI.settings.get("jsonWH-delimiter");
+                    }
+                    var dataString;
+                    const startBlock = await window.roamAlphaAPI.ui.getFocusedBlock()?.["block-uid"];
+                    var thisBlockInfo = window.roamAlphaAPI.data.pull("[:block/string]", [":block/uid", startBlock]);
 
-                let q = `[:find (pull ?page [:block/string]) :where [?page :block/uid "${startBlock}"]  ]`;
-                var thisBlockInfo = await window.roamAlphaAPI.q(q);
-
-                var apiCall = `[:find ?ancestor (pull ?block [*])
+                    var apiCall = `[:find ?ancestor (pull ?block [*])
                 :in $ ?b
                 :where [?ancestor :block/uid ?b]
 
@@ -47,75 +51,75 @@ export default {
 
                        [?block :block/parents ?ancestor]]`;
 
-                var childBlocks = await window.roamAlphaAPI.q(apiCall, startBlock);
+                    var childBlocks = await window.roamAlphaAPI.q(apiCall, startBlock);
 
-                var blocks = {};
-                var parentString = thisBlockInfo[0][0].string;
+                    var blocks = {};
 
-                if (!WebhookURL.match("ifttt")) {
-                    blocks['parentText'] = parentString;
-                } else {
-                    blocks['value1'] = parentString;
-                }
-
-                var n = 0;
-                for (var i in childBlocks) {
-                    dataString = childBlocks[i][1].string;
-                    if (dataString.match(WebhookDelimiter)) {
-                        dataString = dataString.split(WebhookDelimiter);
-                        if (WebhookURL.match("ifttt") && (i < 2)) {
-                            var iftttNumber = parseInt(i) + 2;
-                            blocks['value' + iftttNumber + ''] = encodeURIComponent(dataString[1].trim());
-                        }
-                        else if (!WebhookURL.match("ifttt")) {
-                            blocks['' + dataString[0].trim() + ''] = dataString[1].trim();
-                        }
+                    if (!WebhookURL.match("ifttt")) {
+                        blocks['parentText'] = thisBlockInfo[":block/string"];
                     } else {
-                        if (WebhookURL.match("ifttt") && (i < 2)) {
-                            var iftttNumber = parseInt(i) + 2;
-                            blocks['value' + iftttNumber + ''] = encodeURIComponent(dataString);
-                        }
-                        else if (!WebhookURL.match("ifttt")) {
-                            n = n + 1;
-                            blocks['string' + n] = dataString;
+                        blocks['value1'] = thisBlockInfo[":block/string"];
+                    }
+
+                    var n = 0;
+                    for (var i in childBlocks) {
+                        dataString = childBlocks[i][1].string;
+                        if (dataString.match(WebhookDelimiter)) {
+                            dataString = dataString.split(WebhookDelimiter);
+                            if (WebhookURL.match("ifttt") && (i < 2)) {
+                                var iftttNumber = parseInt(i) + 2;
+                                blocks['value' + iftttNumber + ''] = encodeURIComponent(dataString[1].trim());
+                            }
+                            else if (!WebhookURL.match("ifttt")) {
+                                blocks['' + dataString[0].trim() + ''] = dataString[1].trim();
+                            }
+                        } else {
+                            if (WebhookURL.match("ifttt") && (i < 2)) {
+                                var iftttNumber = parseInt(i) + 2;
+                                blocks['value' + iftttNumber + ''] = encodeURIComponent(dataString);
+                            }
+                            else if (!WebhookURL.match("ifttt")) {
+                                n = n + 1;
+                                blocks['string' + n] = dataString;
+                            }
                         }
                     }
-                }
 
-                var myHeaders = new Headers();
-                var requestOptions = {};
-                if (WebhookURL.match("zapier")) {
-                    requestOptions["body"] = JSON.stringify(blocks);
-                } else if (WebhookURL.match("ifttt")) {
-                    var iftttURL = WebhookURL + "?value1=" + blocks['value1'] + "&value2=" + blocks['value2'] + "&value3=" + blocks['value3'];
-                } else if (WebhookURL.match("make") || WebhookURL.match("pipedream")) {
-                    myHeaders.append("Content-Type", "application/json");
-                    requestOptions["headers"] = myHeaders;
-                    requestOptions["body"] = JSON.stringify(blocks);
-                } else {
-                    requestOptions["body"] = JSON.stringify(blocks);
-                }
-                requestOptions["method"] = "POST";
-                requestOptions["redirect"] = "follow";
+                    var myHeaders = new Headers();
+                    var requestOptions = {};
+                    if (WebhookURL.match("zapier")) {
+                        requestOptions["body"] = JSON.stringify(blocks);
+                    } else if (WebhookURL.match("ifttt")) {
+                        var iftttURL = WebhookURL + "?value1=" + blocks['value1'] + "&value2=" + blocks['value2'] + "&value3=" + blocks['value3'];
+                    } else if (WebhookURL.match("make") || WebhookURL.match("pipedream")) {
+                        myHeaders.append("Content-Type", "application/json");
+                        requestOptions["headers"] = myHeaders;
+                        requestOptions["body"] = JSON.stringify(blocks);
+                    } else {
+                        requestOptions["body"] = JSON.stringify(blocks);
+                    }
+                    requestOptions["method"] = "POST";
+                    requestOptions["redirect"] = "follow";
 
-                if (WebhookURL.match("ifttt")) {
-                    const response = await fetch(iftttURL, requestOptions)
-                    const data = await response.json();
-                    if (response.ok) {
-                        console.log("JSON to webhooks - sent")
+                    if (WebhookURL.match("ifttt")) {
+                        const response = await fetch(iftttURL, requestOptions)
+                        const data = await response.json();
+                        if (response.ok) {
+                            console.log("JSON to webhooks - sent")
+                        } else {
+                            console.error(data);
+                        }
                     } else {
-                        console.error(data);
+                        const response = await fetch(WebhookURL, requestOptions);
+                        const data = await response.json();
+                        if (response.ok) {
+                            console.log("JSON to webhooks - sent")
+                        } else {
+                            console.error(data);
+                        }
                     }
-                } else {
-                    const response = await fetch(WebhookURL, requestOptions);
-                    const data = await response.json();
-                    if (response.ok) {
-                        console.log("JSON to webhooks - sent")
-                    } else {
-                        console.error(data);
-                    }
-                }
-            };
+                };
+            }
         }
     },
     onunload: () => {
@@ -126,5 +130,5 @@ export default {
 }
 
 function sendConfigAlert() {
-    alert("Please set all required configuration settings via the Roam Depot tab.");
+    alert("Please set your webhook address via the Roam Depot tab.");
 }
