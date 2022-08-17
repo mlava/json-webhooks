@@ -91,6 +91,7 @@ export default {
                         requestOptions["body"] = JSON.stringify(blocks);
                     } else if (WebhookURL.match("ifttt")) {
                         var iftttURL = WebhookURL + "?value1=" + blocks['value1'] + "&value2=" + blocks['value2'] + "&value3=" + blocks['value3'];
+                        requestOptions["mode"] = "no-cors";
                     } else if (WebhookURL.match("make") || WebhookURL.match("pipedream")) {
                         myHeaders.append("Content-Type", "application/json");
                         requestOptions["headers"] = myHeaders;
@@ -102,13 +103,8 @@ export default {
                     requestOptions["redirect"] = "follow";
 
                     if (WebhookURL.match("ifttt")) {
-                        const response = await fetch(iftttURL, requestOptions)
-                        const data = await response.json();
-                        if (response.ok) {
-                            console.log("JSON to webhooks - sent")
-                        } else {
-                            console.error(data);
-                        }
+                        await fetch(iftttURL, requestOptions)
+                        console.log("JSON to webhooks - sent")
                     } else {
                         const response = await fetch(WebhookURL, requestOptions);
                         const data = await response.json();
