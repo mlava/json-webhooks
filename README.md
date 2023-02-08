@@ -1,9 +1,11 @@
 This extension allows you to export data from Roam Research to a webhook. This can allow connection with services such as Zapier, IFTTT, Integromat/Make and Pipedream.
 
+**New:**
+- allow a second webhook definition to send to a second source
+
 If you nest childblock data beneath a parent, click into the parent block and then trigge this extension via the Command Palette, it will read the parent and child block data and then format it to send to the defined webhook.
 
 Note that you need to have set up whichever service you're using in advance - stepwise instructions are below.
-
 
 - lunch with John
     - Date: tomorrow
