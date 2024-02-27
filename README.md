@@ -2,6 +2,7 @@ This extension allows you to export data from Roam Research to a webhook. This c
 
 **New:**
 - optionally apply a string or tag to the parent block on successfully sent to webhook (e.g. #sent)
+- support Konnectzit in addition to Zapier, IFTTT, Make/Integromat and Pipedream
 - allow a second webhook definition to send to a second source
 
 If you nest childblock data beneath a parent, click into the parent block and then trigge this extension via the Command Palette, it will read the parent and child block data and then format it to send to the defined webhook.
@@ -61,6 +62,14 @@ This clip shows how to use the data structure above to make a calendar entry: ht
         - Trigger the extension via the Command Palette
         - In the left-sided panel a new event will appear. Click on the timestamp header and the information to the right will show the event data.
         - Click the Create Workflow button to connect your data to another app and enjoy! 🎉
+    - ### Konnectzit:
+        - Click on the button 'Create Konnectz'
+        - From Integrated Apps, drag the icon for Webhook onto the working area
+        - Copy the Webhook URL and then click on the button 'Capture Webhook Response'
+        - Place the Webhook URL in the Roam Depot settings panel
+        - Click into the example item below, 'lunch with John', at the end (after 'John')
+        - Trigger the extension via the Command Palette
+        - In Konnectzit, the data you sent to your Webhook should appear. Connect your Webhook to other apps and Save and then Publish your workflow. 🎉
     - ### Choice of Delimiter:
         - Choose which delimiter you wish to use to separate the child block key:value pairs.
             - For example, you could use Date: Tomorrow which uses : as the delimiter
