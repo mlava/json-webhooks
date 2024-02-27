@@ -14,6 +14,12 @@ const config = {
             action: { type: "input", placeholder: ":" },
         },
         {
+            id: "jsonWH-tag",
+            name: "Confirmation tag",
+            description: "(Optional) tag or string to show on confirmation of successful post to webhook",
+            action: { type: "input", placeholder: "e.g. #sent (leave blank to ignore)" },
+        },
+        {
             id: "jsonWH-webhook2",
             name: "Second Webhook Address (optional)",
             description: "Place webhook address here",
@@ -24,6 +30,12 @@ const config = {
             name: "Second Delimiter (optional)",
             description: "The character that marks the beginning or end of a unit of data",
             action: { type: "input", placeholder: ":" },
+        },
+        {
+            id: "jsonWH-tag2",
+            name: "Confirmation tag",
+            description: "(Optional) tag or string to show on confirmation of successful post to webhook",
+            action: { type: "input", placeholder: "e.g. #sent (leave blank to ignore)" },
         },
     ]
 };
@@ -58,7 +70,7 @@ export default {
         });
 
         async function jsonWH(uid, which) {
-            var WebhookURL, WebhookDelimiter, WebhookURL2, WebhookDelimiter2;
+            var WebhookURL, WebhookDelimiter, tagConfirmation, WebhookURL2, WebhookDelimiter2, tagConfirmation2;
             breakme: {
                 if (!extensionAPI.settings.get("jsonWH-webhook")) {
                     sendConfigAlert();
@@ -70,15 +82,24 @@ export default {
                     } else {
                         WebhookDelimiter = extensionAPI.settings.get("jsonWH-delimiter");
                     }
+                    if (extensionAPI.settings.get("jsonWH-tag") != "e.g. #sent (leave blank to ignore" && extensionAPI.settings.get("jsonWH-tag") != "") {
+                        tagConfirmation = extensionAPI.settings.get("jsonWH-tag");
+                    }
+
                     if (extensionAPI.settings.get("jsonWH-webhook2")) {
                         WebhookURL2 = extensionAPI.settings.get("jsonWH-webhook2");
                     }
-                    if (extensionAPI.settings.get("jsonWH-delimiter2")) {
+                    if (!extensionAPI.settings.get("jsonWH-delimiter2")) {
+                        WebhookDelimiter2 = ":";
+                    } else {
                         WebhookDelimiter2 = extensionAPI.settings.get("jsonWH-delimiter2");
                     }
-                    var dataString;
+                    if (extensionAPI.settings.get("jsonWH-tag2") != "e.g. #sent (leave blank to ignore" && extensionAPI.settings.get("jsonWH-tag2") != "") {
+                        tagConfirmation2 = extensionAPI.settings.get("jsonWH-tag2");
+                    }
 
-                    var thisBlockInfo = window.roamAlphaAPI.data.pull("[:block/string]", [":block/uid", uid]);
+                    var dataString;
+                    var thisBlockInfo = window.roamAlphaAPI.data.pull("[:block/string :block/uid]", [":block/uid", uid]);
 
                     var apiCall = `[:find ?ancestor (pull ?block [*])
                 :in $ ?b
@@ -136,6 +157,7 @@ export default {
                                     blocks['value' + iftttNumber + ''] = encodeURIComponent(dataString[1].trim());
                                 }
                                 else if (!WebhookURL2.match("ifttt")) {
+                                    console.info(dataString);
                                     blocks['' + dataString[0].trim() + ''] = dataString[1].trim();
                                 }
                             } else {
@@ -185,12 +207,30 @@ export default {
 
                     if (which == 1) {
                         if (WebhookURL.match("ifttt")) {
-                            await fetch(iftttURL, requestOptions)
-                            console.log("JSON to webhooks - sent")
+                            await fetch(iftttURL, requestOptions);
+                            console.log("JSON to webhooks - sent");
+                            if (tagConfirmation != null) {
+                                await window.roamAlphaAPI.updateBlock({
+                                    "block":
+                                    {
+                                        "uid": thisBlockInfo[":block/uid"],
+                                        "string": thisBlockInfo[":block/string"] + " " + tagConfirmation
+                                    }
+                                });
+                            };
                         } else {
                             const response = await fetch(WebhookURL, requestOptions);
                             if (response.ok) {
-                                console.log("JSON to webhooks - sent")
+                                console.log("JSON to webhooks - sent");
+                                if (tagConfirmation != null) {
+                                    await window.roamAlphaAPI.updateBlock({
+                                        "block":
+                                        {
+                                            "uid": thisBlockInfo[":block/uid"],
+                                            "string": thisBlockInfo[":block/string"] + " " + tagConfirmation
+                                        }
+                                    });
+                                };
                             } else {
                                 const data = await response.json();
                                 console.error(data);
@@ -199,11 +239,29 @@ export default {
                     } else if (which == 2) {
                         if (WebhookURL2.match("ifttt")) {
                             await fetch(iftttURL, requestOptions)
-                            console.log("JSON to webhooks - sent")
+                            console.log("JSON to webhooks - sent");
+                            if (tagConfirmation2 != null) {
+                                await window.roamAlphaAPI.updateBlock({
+                                    "block":
+                                    {
+                                        "uid": thisBlockInfo[":block/uid"],
+                                        "string": thisBlockInfo[":block/string"] + " " + tagConfirmation2
+                                    }
+                                });
+                            };
                         } else {
                             const response = await fetch(WebhookURL2, requestOptions);
                             if (response.ok) {
-                                console.log("JSON to webhooks - sent")
+                                console.log("JSON to webhooks - sent");
+                                if (tagConfirmation2 != null) {
+                                    await window.roamAlphaAPI.updateBlock({
+                                        "block":
+                                        {
+                                            "uid": thisBlockInfo[":block/uid"],
+                                            "string": thisBlockInfo[":block/string"] + " " + tagConfirmation2
+                                        }
+                                    });
+                                };
                             } else {
                                 const data = await response.json();
                                 console.error(data);
