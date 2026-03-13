@@ -53,8 +53,17 @@ async function jsonWH(uid, which) {
 
     var url = cfg.url;
     var delimiter = cfg.delimiter;
-    var tag = cfg.tag;
     var service = cfg.service;
+    var tag = cfg.tag;
+    if (tag && tag.includes("{{timestamp}}")) {
+        var now = new Date();
+        var ts = now.getFullYear() + "-"
+            + String(now.getMonth() + 1).padStart(2, "0") + "-"
+            + String(now.getDate()).padStart(2, "0") + " "
+            + String(now.getHours()).padStart(2, "0") + ":"
+            + String(now.getMinutes()).padStart(2, "0");
+        tag = tag.replace("{{timestamp}}", ts);
+    }
 
     if (_inflight.has(uid)) return { error: "Send already in progress for this block" };
     _inflight.add(uid);
@@ -218,7 +227,7 @@ function buildSettingsConfig(extensionAPI, count) {
             {
                 id: "jsonWH-tag" + s,
                 name: "Webhook #" + n + " Confirmation tag",
-                description: "(Optional) Tag or string appended to the block on successful send.",
+                description: "(Optional) Tag or string appended to the block on successful send. Use {{timestamp}} to insert the current date/time (e.g. #sent-{{timestamp}}).",
                 action: { type: "input", placeholder: "e.g. #sent (leave blank to ignore)" },
             }
         );
