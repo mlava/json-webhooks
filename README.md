@@ -1,11 +1,14 @@
-This extension allows you to export data from Roam Research to a webhook. This can allow connection with services such as Zapier, IFTTT, Integromat/Make and Pipedream.
+This extension allows you to export data from Roam Research to a webhook. This can allow connection with services such as Zapier, IFTTT, Make, Pipedream and Konnectzit.
 
-**New:**
-- optionally apply a string or tag to the parent block on successfully sent to webhook (e.g. #sent)
-- support Konnectzit in addition to Zapier, IFTTT, Make/Integromat and Pipedream
-- allow a second webhook definition to send to a second source
+**Features:**
+- Send a block and its children as structured JSON to up to 10 webhook endpoints
+- Assign a friendly label to each webhook — labelled webhooks appear in the Command Palette as "JSON to Webhook: My Label" rather than by number
+- Optionally apply a confirmation tag to the parent block on success (e.g. #sent)
+- Configurable delimiter for key:value parsing
+- Supports Zapier, IFTTT, Make, Pipedream, Konnectzit, and any generic webhook endpoint
+- **Chief of Staff integration:** Exposes `jw_get_config` and `jw_send` via the Extension Tools API, allowing Chief of Staff to query webhook configuration and trigger sends programmatically
 
-If you nest childblock data beneath a parent, click into the parent block and then trigge this extension via the Command Palette, it will read the parent and child block data and then format it to send to the defined webhook.
+If you nest child block data beneath a parent, click into the parent block and then trigger this extension via the Command Palette. Commands are listed as "JSON to Webhook: [label]" if you've assigned a label, or "JSON to Webhook #1", "#2", etc. if not. It will read the parent and child block data and format it to send to the defined webhook.
 
 Note that you need to have set up whichever service you're using in advance - stepwise instructions are below.
 
@@ -84,4 +87,4 @@ This clip shows how to use the data structure above to make a calendar entry: ht
         - You might choose to have some simple text fields without a delimiter. In this case, they will be sent as a key:value pair of "string__n__":"__string of text__"
             - You can mix and match with some child blocks having simple text and others having delimited text.
             - Note: for IFTTT your text will be sent as "value__n__":"__string of text__"
-        - Finally, you don't have to use child blocks. If you trigger the SB in a block without children it will simply send a single key:value pair of "parentText" and the text in the block as the value.
+        - Finally, you don't have to use child blocks. If you trigger the command in a block without children it will simply send a single key:value pair of "parentText" and the text in the block as the value.
